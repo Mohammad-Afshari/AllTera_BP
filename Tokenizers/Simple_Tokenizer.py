@@ -1,3 +1,5 @@
+# This Line added to test git!
+
 def normalize(text):
     text = text.lower()
     
