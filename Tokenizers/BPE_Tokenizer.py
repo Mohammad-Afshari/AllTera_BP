@@ -1,13 +1,13 @@
 import re
 from tkinter import filedialog 
 from collections import Counter, defaultdict
+special_tokens = ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
+basic_tokens = list('abcdefghijklmnopqrstuvwxyz123456789')
 
 # f_path = filedialog.askopenfile(title="Select text file.").name
 f_path = '/home/mohammad/Desktop/Ai/DATASETS/TinyChat/tinychat.txt'
 f = open(f_path)
-full_text = f.read(5000)
-
-
+full_text = f.read(500000)
 
 def normalize(text):
     text = text.lower()
@@ -15,7 +15,7 @@ def normalize(text):
     text = text.replace('[inst]', ' <inst> ').replace('[/inst]', ' </inst> ')
     text = re.sub('[^a-z0-9<->/]+', ' ', text)
 
-    text = re.sub('/s+', ' ', text)
+    text = re.sub(r'\s+', ' ', text)
 
     return text.strip()
 
@@ -89,7 +89,7 @@ def create_merge_rules(num_merges, freq_vocab):
             print(f'Merging... {i}/{num_merges}')
     return merge_rules
 
-def encode_word(word, merge_rules):
+def break_word(word, merge_rules):
 
     if word.startswith('<') and word.endswith('>'):
         return [word]
@@ -110,30 +110,45 @@ def encode_word(word, merge_rules):
                 i+=1
     return symbols
 
-# See an example
-# print(encode_word('hello there i am mohammad',merge_rules))
 
 def buid_vocab(merge_rules):
-    pairs = []
+    vocab = []
+    vocab.extend(special_tokens)
+    vocab.extend(basic_tokens)
+
     for pair in merge_rules:
-        pairs.append(''.join(pair))
+        vocab.append(''.join(pair))
 
     token_to_id = {}
-    for id, tok in enumerate(pairs):
-        token_to_id[tok] = id
-
     id_to_token = {}
-    for id, tok in enumerate(pairs):
-        token_to_id[id] = tok
+    for id, tok in enumerate(vocab):
+        token_to_id[tok] = id
+        id_to_token[id] = tok
 
     return token_to_id, id_to_token
 
-# tok2id, id2tok = buid_vocab(merge_rules)
+def tokenize_text(text, merge_rules, token_to_id):
+    words = text.split(' ')
+    tokens_ids = []
+
+    for word in words:
+        word = normalize(word)
+
+        tokens = break_word(word, merge_rules)
+        for token in tokens:
+            if token not in token_to_id:
+                tokens_ids.append(token_to_id['<UNK>'])
+            else:
+                tokens_ids.append(token_to_id[token])
+    return tokens_ids
 
 
-# Encode whole of the text:
-# encoded_text = []
-# for word in normalize(full_text):
-#     encodeds = encode_word(word, merge_rules)
-#     for encoded in encodeds:
-#         encoded_text.append(encoded)
+freq_vocab = create_freq_vocab(full_text)
+merge_rules = create_merge_rules(10000, freq_vocab)
+tok2id, id2tok = buid_vocab(merge_rules)
+
+# See an example of breaking text using merge rules
+# print(encode_word('hello there i am mohammad',merge_rules))
+# See an example of tokenizing
+example_tokenized = tokenize_text('Hello there my name is mohammad and i love nlp an AI!', merge_rules, tok2id)
+print(example_tokenized)

@@ -30,7 +30,7 @@ def convert_text_to_ids(text, token_to_id, max_len):
     text = normalize(text)
     words = text.split(' ')
 
-    # شروع توالی با
+    # seq starts with
     ids = [token_to_id['<BOS>']]
 
     for word in words:
