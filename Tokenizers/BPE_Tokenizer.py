@@ -4,8 +4,7 @@ from collections import Counter, defaultdict
 special_tokens = ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
 basic_tokens = list('abcdefghijklmnopqrstuvwxyz123456789')
 
-# f_path = filedialog.askopenfile(title="Select text file.").name
-f_path = '/home/mohammad/Desktop/Ai/DATASETS/TinyChat/tinychat.txt'
+f_path = filedialog.askopenfile(title="Select text file.").name
 f = open(f_path)
 full_text = f.read(500000)
 
@@ -76,7 +75,7 @@ def merge_vocab(pair, freq_vocab):
 
 def create_merge_rules(num_merges, freq_vocab):
     merge_rules = []
-
+    # Merge as long as it's possible
     for i in range(num_merges):
         pairs = get_pairs_freq(freq_vocab)
         if not pairs:
@@ -149,6 +148,7 @@ tok2id, id2tok = buid_vocab(merge_rules)
 
 # See an example of breaking text using merge rules
 # print(encode_word('hello there i am mohammad',merge_rules))
+
 # See an example of tokenizing
-example_tokenized = tokenize_text('Hello there my name is mohammad and i love nlp an AI!', merge_rules, tok2id)
+example_tokenized = tokenize_text('Hello there my name is mohammad. I love nlp and AI!', merge_rules, tok2id)
 print(example_tokenized)

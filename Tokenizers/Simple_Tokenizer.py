@@ -67,8 +67,10 @@ def convert_ids_to_text(ids, id_to_token):
 texts = [
     'i love coding so much',
     'i like npl coding',
-    'coding and love',
     'hello my name is mohammad'
 ]
 
 t2i, i2t = build_vocab(texts)
+
+# See an example of tokenizing
+print(convert_text_to_ids('Hello my name is mohammad and I like coding.', t2i, 20))
