@@ -75,7 +75,6 @@ def merge_vocab(pair, freq_vocab):
 
 def create_merge_rules(num_merges, freq_vocab):
     merge_rules = []
-    # Merge as long as it's possible
     for i in range(num_merges):
         pairs = get_pairs_freq(freq_vocab)
         if not pairs:
@@ -88,7 +87,7 @@ def create_merge_rules(num_merges, freq_vocab):
             print(f'Merging... {i}/{num_merges}')
     return merge_rules
 
-def break_word(word, merge_rules):
+def word_to_token(word, merge_rules):
 
     if word.startswith('<') and word.endswith('>'):
         return [word]
@@ -133,7 +132,7 @@ def tokenize_text(text, merge_rules, token_to_id):
     for word in words:
         word = normalize(word)
 
-        tokens = break_word(word, merge_rules)
+        tokens = word_to_token(word, merge_rules)
         for token in tokens:
             if token not in token_to_id:
                 tokens_ids.append(token_to_id['<UNK>'])
@@ -143,7 +142,7 @@ def tokenize_text(text, merge_rules, token_to_id):
 
 
 freq_vocab = create_freq_vocab(full_text)
-merge_rules = create_merge_rules(10000, freq_vocab)
+merge_rules = create_merge_rules(5000, freq_vocab)
 tok2id, id2tok = buid_vocab(merge_rules)
 
 # See an example of breaking text using merge rules
