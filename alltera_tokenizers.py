@@ -1,10 +1,16 @@
 import re
 from collections import Counter, defaultdict
 class subwordTokenizer:
-    def __init__(self, regex_rule=None , special_tokens=None, basic_tokens=None):
-        self.special_tokens = special_tokens or ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
-        self.basic_tokens = basic_tokens or list('abcdefghijklmnopqrstuvwxyz123456789.,!?;:-()[]{}+/\\@#$%^&*')
-        self.regex_rule = regex_rule or re.compile(r'[^a-z123456789\.,!\?;:\-\(\)\[\]\{\}\+\/\\@#\$%\^&\*]+')
+    # def __init__(self, regex_rule=None , special_tokens=None, basic_tokens=None):
+    def __init__(self):
+        # self.special_tokens = special_tokens or ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
+        # self.basic_tokens = basic_tokens or list('abcdefghijklmnopqrstuvwxyz123456789.,!?;:-()[]{}+/\\@#$%^&*')
+        # self.regex_rule = regex_rule or re.compile(r'[^a-z123456789\.,!\?;:\-\(\)\[\]\{\}\+\/\\@#\$%\^&\*]+')
+
+        self.special_tokens = ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
+        self.basic_tokens = list('abcdefghijklmnopqrstuvwxyz123456789.,!?;:-()[]{}+/\\@#$%^&* ')
+        self.regex_rule = re.compile(r'[^a-z123456789\.,!\?;:\-\(\)\[\]\{\}\+\/\\@#\$%\^&\*]+')
+    
         # r'[^a-z0-9><./,:-]+'
 
         self.freq_vocab= None
@@ -168,9 +174,17 @@ class subwordTokenizer:
 
         return tokens_ids
     
-
-    # BROKEN. NOT COMPLETED !!!
+    # GOT SOME ISSUES! NOT COMPLETE!!!
     def create_training_data_from_text(self, trainig_text, seq_length):
+
+        # WORKING ON:
+        # trainig_text = trainig_text.split()
+        # new = []
+        # for word in trainig_text:
+        #     if word not in list('.,!?;:-()[]{}+/\\@#$%^&* '):
+        #         new.append(word+'</w>')
+        # trainig_text = ' '.join(new)
+
         trainig_text = self.normalize(trainig_text)
         tokenized_training_text = self.text_to_token(trainig_text)
         
@@ -180,22 +194,34 @@ class subwordTokenizer:
             if bos_word_index > len(tokenized_training_text) - seq_length*3:
                 return sequences
             else:
-
                 seq = []
                 seq.append(self.token_to_id['<BOS>'])
-                for i in range(seq_length):
+
+                for i in range(seq_length-1):
+                    
+                    # sequence beggining index(bos_word_index) + token of sequence index(i)
+
                     if tokenized_training_text[bos_word_index + i] in self.token_to_id:
                         seq.append(self.token_to_id[tokenized_training_text[bos_word_index+i]])
+
                     else:
                         seq.append(self.token_to_id['<UNK>'])
                 
-                    if len(seq) == seq_length-1:
+                    if len(seq) == seq_length:
                         seq.append(self.token_to_id['<EOS>'])
-                    sequences.append(seq)
+                        sequences.append(seq)
+                        break
+
 
         return sequences
 
 toknizer = subwordTokenizer()
-full_text = open('dataset.txt').read(100000)
+full_text = open('/home/mohammad/Desktop/Datasets/tinychat.txt').read(100000)
 toknizer.create_new_tokenizer(full_text,5000)
-seqs = toknizer.create_training_data_from_text('hello my name is mohammad and i love programming',5)
+seqs = toknizer.create_training_data_from_text('we healthily fondly pets',3)
+for seq in seqs:
+    print(seq)
+    txxt = []
+    for tok in seq:
+        txxt.append(toknizer.id_to_token[tok])
+    print(' '.join(txxt))
