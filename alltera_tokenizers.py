@@ -216,9 +216,11 @@ class subwordTokenizer:
         return sequences
 
 toknizer = subwordTokenizer()
-full_text = open('/home/mohammad/Desktop/Datasets/tinychat.txt').read(100000)
+full_text = open('dataset.txt').read(100000)
 toknizer.create_new_tokenizer(full_text,5000)
-seqs = toknizer.create_training_data_from_text('we healthily fondly pets',3)
+
+trtxt = ''
+seqs = toknizer.create_training_data_from_text(trtxt,10)
 for seq in seqs:
     print(seq)
     txxt = []
