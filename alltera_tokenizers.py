@@ -1,16 +1,11 @@
 import re
 from collections import Counter, defaultdict
 class subwordTokenizer:
-    # def __init__(self, regex_rule=None , special_tokens=None, basic_tokens=None):
-    def __init__(self):
-        # self.special_tokens = special_tokens or ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
-        # self.basic_tokens = basic_tokens or list('abcdefghijklmnopqrstuvwxyz123456789.,!?;:-()[]{}+/\\@#$%^&*')
-        # self.regex_rule = regex_rule or re.compile(r'[^a-z123456789\.,!\?;:\-\(\)\[\]\{\}\+\/\\@#\$%\^&\*]+')
+    def __init__(self, regex_rule=None , special_tokens=None, basic_tokens=None):
+        self.special_tokens = special_tokens or ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
+        self.basic_tokens = basic_tokens or list('abcdefghijklmnopqrstuvwxyz123456789.,!?;:-()[]{}+/\\@#$%^&*')
+        self.regex_rule = regex_rule or re.compile(r'[^a-z123456789\.,!\?;:\-\(\)\[\]\{\}\+\/\\@#\$%\^&\*]+')
 
-        self.special_tokens = ['<BOS>', '<EOS>', '<UNK>', '<PAD>', '</w>']
-        self.basic_tokens = list('abcdefghijklmnopqrstuvwxyz123456789.,!?;:-()[]{}+/\\@#$%^&* ')
-        self.regex_rule = re.compile(r'[^a-z123456789\.,!\?;:\-\(\)\[\]\{\}\+\/\\@#\$%\^&\*]+')
-    
         # r'[^a-z0-9><./,:-]+'
 
         self.freq_vocab= None
@@ -220,7 +215,7 @@ full_text = open('dataset.txt').read(100000)
 toknizer.create_new_tokenizer(full_text,5000)
 
 trtxt = ''
-seqs = toknizer.create_training_data_from_text(trtxt,10)
+seqs = toknizer.create_training_data_from_text(trtxt,5)
 for seq in seqs:
     print(seq)
     txxt = []
