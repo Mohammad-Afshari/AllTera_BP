@@ -30,7 +30,7 @@ class subwordTokenizer:
     # ---------------------------------------------------
 
     def create_freq_vocab(self, text):
-        text = self.normalize(text)
+        # text = self.normalize(text)
         texts = text.split()
         words = []
         for word in texts:
@@ -53,7 +53,7 @@ class subwordTokenizer:
         self.freq_vocab= freq_vocab
     
     # ---------------------------------------------------
-    
+
     def get_pairs_freq(self):
         pairs = defaultdict(int)
 
@@ -63,7 +63,9 @@ class subwordTokenizer:
                 pairs[symbols[i], symbols[i+1]] += freq
 
         return pairs
-
+    
+    # ---------------------------------------------------
+    
     def merge_vocab(self, pair,):
         new_vocab = {}
         bigram = ''.join(pair)
@@ -106,29 +108,6 @@ class subwordTokenizer:
         self.merge_rules = merge_rules
 
     # ---------------------------------------------------
-    
-    def text_to_token(self, word):
-
-        if word.startswith('<') and word.endswith('>'):
-            return [word]
-    
-        word = self.normalize(word)
-
-        toks = list(word)
-        toks.append('</w>')
-
-        i = 0
-
-        for pair in self.merge_rules:
-            i = 0
-            while i < len(toks)-1:
-                if (toks[i], toks[i+1]) == pair:
-                    toks[i:i+2] = [''.join(pair)]
-                else:
-                    i+=1
-        return toks
-
-    # ---------------------------------------------------
 
     def buid_vocab(self):
         vocab = []
@@ -147,14 +126,63 @@ class subwordTokenizer:
         self.token_to_id , self.id_to_token = token_to_id, id_to_token
 
     # ---------------------------------------------------
+    
+    def text_to_token(self, text:str):
+        # word
+        text_list = text.split()
 
-    def create_new_tokenizer(self, text_to_fit, num_merge_rules):
-        self.create_freq_vocab(text_to_fit)
-        self.create_merge_rules(num_merge_rules)
-        self.buid_vocab()
+        if len(text_list) == 1:
+            word = text
 
+            # if it's special token
+            if word.startswith('<') and word.endswith('>'):
+                return word
+            
+            # word = self.normalize(word)
+            toks = list(word)
+            toks.append('</w>')
 
-    def tokenize_text(self, text):
+            i = 0
+            for pair in self.merge_rules:
+                i = 0
+                while i < len(toks)-1:
+                    if (toks[i], toks[i+1]) == pair:
+                        toks[i:i+2] = [''.join(pair)]
+                    else:
+                        i+=1
+            return ''.join(toks)
+        
+        # sentences
+        else:
+            text_tokens = []
+
+            for word in text_list:
+                # if it's special token
+                if word.startswith('<') and word.endswith('>'):
+                    text_tokens.append(word)
+
+                else:
+                    # word = self.normalize(word)
+                    toks = list(word)
+                    toks.append('</w>')
+
+                    i = 0
+
+                    for pair in self.merge_rules:
+                        i = 0
+                        while i < len(toks)-1:
+                            if (toks[i], toks[i+1]) == pair:
+                                toks[i:i+2] = [''.join(pair)]
+                            else:
+                                i+=1
+                    text_tokens.append(''.join(toks))
+
+            return text_tokens
+        
+    # ---------------------------------------------------
+
+    def numberic_tokenized_text(self, text):
+        # text = self.normalize(text)
         words = text.split()
         tokens_ids = []
 
@@ -169,33 +197,26 @@ class subwordTokenizer:
 
         return tokens_ids
     
+    # ---------------------------------------------------
+
     # GOT SOME ISSUES! NOT COMPLETE!!!
-    def create_training_data_from_text(self, trainig_text, seq_length):
+    def create_training_data_from_text(self, training_text, seq_length):
 
-        # WORKING ON:
-        # trainig_text = trainig_text.split()
-        # new = []
-        # for word in trainig_text:
-        #     if word not in list('.,!?;:-()[]{}+/\\@#$%^&* '):
-        #         new.append(word+'</w>')
-        # trainig_text = ' '.join(new)
-
-        trainig_text = self.normalize(trainig_text)
-        tokenized_training_text = self.text_to_token(trainig_text)
+        tokenized_training_text = self.text_to_token(training_text)
         
         sequences = []
         
         for bos_word_index in range(len(tokenized_training_text)):
-            if bos_word_index > len(tokenized_training_text) - seq_length*3:
-                return sequences
+            if bos_word_index > len(tokenized_training_text) - seq_length*2:
+                # return sequences
+                break
             else:
                 seq = []
                 seq.append(self.token_to_id['<BOS>'])
 
                 for i in range(seq_length-1):
                     
-                    # sequence beggining index(bos_word_index) + token of sequence index(i)
-
+                    # Sequence beggining index(bos_word_index) + sequence token index(i)
                     if tokenized_training_text[bos_word_index + i] in self.token_to_id:
                         seq.append(self.token_to_id[tokenized_training_text[bos_word_index+i]])
 
@@ -206,19 +227,75 @@ class subwordTokenizer:
                         seq.append(self.token_to_id['<EOS>'])
                         sequences.append(seq)
                         break
+        # return sequences
+        
+        input_seq = []
+        target_seq = []
+
+        for i in range(len(sequences)):
+            if i+1 < len(sequences):
+                input_seq.append(sequences[i])
+                target_seq.append(sequences[i+1])
+
+        return input_seq, target_seq
 
 
-        return sequences
+    # ---------------------------------------------------
 
-toknizer = subwordTokenizer()
-full_text = open('dataset.txt').read(100000)
-toknizer.create_new_tokenizer(full_text,5000)
+    def create_new_tokenizer(self, text_to_fit, num_merge_rules):
+        self.create_freq_vocab(text_to_fit)
+        self.create_merge_rules(num_merge_rules)
+        self.buid_vocab()
 
-trtxt = ''
-seqs = toknizer.create_training_data_from_text(trtxt,5)
-for seq in seqs:
-    print(seq)
-    txxt = []
-    for tok in seq:
-        txxt.append(toknizer.id_to_token[tok])
-    print(' '.join(txxt))
+
+tokenizer = subwordTokenizer()
+dataset_file = open('/home/mohammad/Desktop/Datasets/tinychat.txt')
+dataset_text = dataset_file.read(100000)
+
+dataset_text = tokenizer.normalize(dataset_text)
+tokenizer.create_new_tokenizer(dataset_text,5000)
+
+text_to_tokenize = 'hello world my name is alex and i love programming'
+
+print(f'Tokenized text:\n{text_to_tokenize}\n{tokenizer.text_to_token(text_to_tokenize)}')
+
+# for seq in seqs:
+#     text_tokens = []
+#     for token in seq:
+#         text_tokens.append(tokenizer.id_to_token[token])
+    
+#     text = ''
+#     for text_token in text_tokens:
+#         text += text_token.replace('</w>',' ').replace('<BOS>','START-  ').replace('<EOS>','  -END').replace('<UNK>',' <UNK> ')
+#     print(text)
+
+training_text = dataset_file.read(250)
+
+inpu, targ = tokenizer.create_training_data_from_text(training_text, 12)
+if len(inpu) == len(targ):
+    print(True)
+
+for i in range(len(inpu)):
+    print(f'inpu: {inpu[i]}')
+
+    text_tokens = []
+    for token in inpu[i]:
+        text_tokens.append(tokenizer.id_to_token[token])
+    
+    text = ''
+    for text_token in text_tokens:
+        text += text_token#.replace('</w>',' ').replace('<BOS>','START-  ').replace('<EOS>','  -END').replace('<UNK>',' <UNK> ')
+    print(text)
+
+    # print('\n')
+
+    print(f'targ: {targ[i]}')
+
+    text_tokens = []
+    for token in targ[i]:
+        text_tokens.append(tokenizer.id_to_token[token])
+    
+    text = ''
+    for text_token in text_tokens:
+        text += text_token#.replace('</w>',' ').replace('<BOS>','START-  ').replace('<EOS>','  -END').replace('<UNK>',' <UNK> ')
+    print(text)
